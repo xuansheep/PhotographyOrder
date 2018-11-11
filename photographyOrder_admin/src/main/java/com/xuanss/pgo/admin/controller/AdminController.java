@@ -26,6 +26,8 @@ public class AdminController {
     private TimeService adminService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private QueueMessage queueMessage;
 
 
     /**
@@ -43,8 +45,12 @@ public class AdminController {
     @RequestMapping(value = "saveOrder", method = RequestMethod.POST)
     public Result saveOrder(@RequestBody PgoOrder order){
         try {
-            orderService.saveOrder(order);
-            return new Result(true,"预定成功！");
+            boolean result = queueMessage.sendMessage(order.getMobilePhone());
+            if (result){
+                orderService.saveOrder(order);
+                return new Result(true,"预定成功！");
+            }
+            return new Result(false,"请输入有效的手机号。");
         } catch (Exception e) {
             e.printStackTrace();
         }
